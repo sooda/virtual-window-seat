@@ -115,16 +115,17 @@ vec2 camplane_to_plane(camera c, vec2 pt_2d, plane p) {
 // image wid/hei given by scale, in units of focal len
 // tex1 is "one" in tex pixel coords
 Mat obtain_dest(camera c, plane p, vec2 scale, float tex1) {
-	vec2 v0 = camplane_to_plane(c, vec2(scale[0] * -1.0f, scale[0] *  1.0f), p);
-	vec2 v1 = camplane_to_plane(c, vec2(scale[0] *  1.0f, scale[0] *  1.0f), p);
-	vec2 v2 = camplane_to_plane(c, vec2(scale[0] *  1.0f, scale[0] * -1.0f), p);
-	vec2 v3 = camplane_to_plane(c, vec2(scale[0] * -1.0f, scale[0] * -1.0f), p);
+	// lower left and counterclockwise
 	pt2 src_pixels[] = {
 		pt2(0.0f, 0.0f),
 		pt2(tex1, 0.0f),
 		pt2(tex1, tex1),
 		pt2(0.0f, tex1)
 	};
+	vec2 v0 = camplane_to_plane(c, vec2(scale[0] * -1.0f, scale[1] * -1.0f), p);
+	vec2 v1 = camplane_to_plane(c, vec2(scale[0] *  1.0f, scale[1] * -1.0f), p);
+	vec2 v2 = camplane_to_plane(c, vec2(scale[0] *  1.0f, scale[1] *  1.0f), p);
+	vec2 v3 = camplane_to_plane(c, vec2(scale[0] * -1.0f, scale[1] *  1.0f), p);
 	pt2 dst_pixels[] = {v0, v1, v2, v3};
 	cout << src_pixels[0] << endl;
 	cout << src_pixels[1] << endl;
@@ -178,8 +179,8 @@ void test() {
 				{}, // pos
 				ones(), // local to world: camera sits at origin
 				{
-					1.0f, // w (all these three in same units)
-					1.0f, // h
+					0.50f, // w (all these three in same units)
+					0.25f, // h
 					1.0f // f
 				}
 			},
