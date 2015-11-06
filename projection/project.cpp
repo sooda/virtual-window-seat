@@ -16,6 +16,9 @@ typedef Vec2f vec2;
 typedef Point2f pt2;
 typedef Point3f pt3;
 
+#define SZ 1024
+#define SZ_F 1024.0f
+
 struct camera {
 	vec3 pos;
 	mat4 local_to_world;
@@ -169,7 +172,7 @@ Mat project(camera c, plane p, Mat src) {
 	Mat dst;
 	cout<<"jee"<<endl;
 	cout<<m<<endl;
-	warpPerspective(src, dst, m, Size(1024, 1024));
+	warpPerspective(src, dst, m, Size(SZ, SZ));
 	return dst;
 }
 
@@ -214,7 +217,7 @@ void test() {
 	// size of the whole plane is now 4x4, need to make it 1x1
 	wtl = scale(1.0f/4.0f, 1.0f/4.0f, 1.0f) * wtl;
 	// and then in pixel coords!
-	wtl = scale(1024.0f, 1024.0f, 1.0f) * wtl;
+	wtl = scale(SZ_F, SZ_F, 1.0f) * wtl;
 	// FIXME TODO XXX: topleft or bottomleft origin?
 
 	cout << wtl << endl;
@@ -230,6 +233,64 @@ void test() {
 	imwrite("out.png", out);
 }
 
+void test2() {
+	camdata cams[] = {
+		{
+			camera{
+
+				{}, // pos: first cam sits at origin
+				rotx(30.0f*3.14159f/180.0f)*ones(), // local to world: camera sits at origin. positive rotation here tilts the cam down because local2world, not camera's rot
+				{
+					0.50f, // w (all these three in same units)
+					0.25f, // h
+					1.0f // f
+				}
+			},
+			imread("cam0.png")
+		},
+	};
+	skybox box;
+	// world point to plane: plane is backed off z axis, some left and down
+	// so invert it. z -2 in world is z 0 on plane
+	// size is twice as big as image plane, so 4 per dir
+	// also shift the corner properly
+	mat4 wtl = translate(2.0f, 2.0f, 2.0f);
+	// size of the whole plane is now 4x4, need to make it 1x1
+	wtl = scale(1.0f/4.0f, 1.0f/4.0f, 1.0f) * wtl;
+	// and then in pixel coords!
+	wtl = scale(SZ_F, SZ_F, 1.0f) * wtl;
+	// FIXME TODO XXX: topleft or bottomleft origin?
+
+	cout << wtl << endl;
+	// plane: n.p + d == 0
+	box.zmin.p = plane{
+		{0.0f, 0.0f, 1.0f}, // normal towards box center
+		2.0f, // dist: plane normal 1, mul by coord -2, add 2 to get 0
+		wtl // world_to_local
+	};
+	// first camera looking into zmin (front)
+	// exactly at the middle
+	//
+	//      top
+	// left front right back
+	//      bottom
+	box.ymax.tex = project(cams[0].c, box.zmin.p, cams[0].frame); // top
+	box.xmin.tex = project(cams[0].c, box.zmin.p, cams[0].frame); // left
+	box.zmin.tex = project(cams[0].c, box.zmin.p, cams[0].frame); // front
+	box.xmax.tex = project(cams[0].c, box.zmin.p, cams[0].frame); // right
+	box.zmax.tex = project(cams[0].c, box.zmin.p, cams[0].frame); // back
+	box.ymin.tex = project(cams[0].c, box.zmin.p, cams[0].frame); // bottom
+	Mat out(3*SZ, 4*SZ, CV_8UC3);
+	box.ymax.tex.copyTo(out.rowRange(0, SZ).colRange(SZ, 2*SZ));
+	box.xmin.tex.copyTo(out.rowRange(SZ, 2*SZ).colRange(0, SZ));
+	box.zmin.tex.copyTo(out.rowRange(SZ, 2*SZ).colRange(SZ, 2*SZ));
+	box.xmax.tex.copyTo(out.rowRange(SZ, 2*SZ).colRange(2*SZ, 3*SZ));
+	box.zmax.tex.copyTo(out.rowRange(SZ, 2*SZ).colRange(3*SZ, 4*SZ));
+	box.ymin.tex.copyTo(out.rowRange(2*SZ, 3*SZ).colRange(SZ, 2*SZ));
+	imwrite("outfull.png", out);
+}
+
 int main() {
 	test();
+	test2();
 }
