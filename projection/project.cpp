@@ -67,6 +67,31 @@ mat4 scale(float x, float y, float z) {
 	return m;
 }
 
+mat4 rotx(float a) {
+	float c = cos(a);
+	float s = sin(a);
+	return mat4(1.0f, 0.0f, 0.0f, 0.0f,
+	            0.0f,    c,   -s, 0.0f,
+	            0.0f,    s,    c, 0.0f,
+	            0.0f, 0.0f, 0.0f, 1.0f);
+}
+mat4 roty(float a) {
+	float c = cos(a);
+	float s = sin(a);
+	return mat4(   c, 0.0f,    s, 0.0f,
+	            0.0f, 1.0f, 0.0f, 0.0f,
+	              -s, 0.0f,    c, 0.0f,
+	            0.0f, 0.0f, 0.0f, 1.0f);
+}
+mat4 rotz(float a) {
+	float c = cos(a);
+	float s = sin(a);
+	return mat4(   c,   -s, 0.0f, 0.0f,
+	               s,    c, 0.0f, 0.0f,
+	            0.0f, 0.0f, 1.0f, 0.0f,
+	            0.0f, 0.0f, 0.0f, 1.0f);
+}
+
 mat4 translate(float x, float y, float z) {
 	mat4 m(ones());
 	m(0,3)=x;
@@ -177,7 +202,7 @@ void test() {
 				{}, // t
 
 				{}, // pos
-				ones(), // local to world: camera sits at origin
+				rotx(30.0f*3.14159f/180.0f)*ones(), // local to world: camera sits at origin. positive rotation here tilts the cam down because local2world, not camera's rot
 				{
 					0.50f, // w (all these three in same units)
 					0.25f, // h
