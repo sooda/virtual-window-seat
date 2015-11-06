@@ -17,10 +17,6 @@ typedef Point2f pt2;
 typedef Point3f pt3;
 
 struct camera {
-	mat4 m;
-	mat3 r;
-	vec3 t;
-
 	vec3 pos;
 	mat4 local_to_world;
 	struct {
@@ -197,11 +193,8 @@ void test() {
 	camdata cams[] = {
 		{
 			camera{
-				{}, // m
-				{}, // r
-				{}, // t
 
-				{}, // pos
+				{}, // pos: first cam sits at origin
 				rotx(30.0f*3.14159f/180.0f)*ones(), // local to world: camera sits at origin. positive rotation here tilts the cam down because local2world, not camera's rot
 				{
 					0.50f, // w (all these three in same units)
