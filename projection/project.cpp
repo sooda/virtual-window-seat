@@ -233,6 +233,17 @@ void test() {
 	imwrite("out.png", out);
 }
 
+// one whole tex, sum images over
+// TODO what to do with overlap? now just sum them
+Mat projectwhole(camdata *cams, int ncams, plane p) {
+	Mat full = project(cams[0].c, p, cams[0].frame);
+	for (int i = 1; i < ncams; i++) {
+		Mat next = project(cams[i].c, p, cams[i].frame);
+		full += next;
+	}
+	return full;
+}
+
 void test2() {
 	camdata cams[] = {
 		{
@@ -274,12 +285,12 @@ void test2() {
 	//      top
 	// left front right back
 	//      bottom
-	box.ymax.tex = project(cams[0].c, box.zmin.p, cams[0].frame); // top
-	box.xmin.tex = project(cams[0].c, box.zmin.p, cams[0].frame); // left
-	box.zmin.tex = project(cams[0].c, box.zmin.p, cams[0].frame); // front
-	box.xmax.tex = project(cams[0].c, box.zmin.p, cams[0].frame); // right
-	box.zmax.tex = project(cams[0].c, box.zmin.p, cams[0].frame); // back
-	box.ymin.tex = project(cams[0].c, box.zmin.p, cams[0].frame); // bottom
+	box.ymax.tex = projectwhole(cams, 1, box.zmin.p); // top
+	box.xmin.tex = projectwhole(cams, 1, box.zmin.p); // left
+	box.zmin.tex = projectwhole(cams, 1, box.zmin.p); // front
+	box.xmax.tex = projectwhole(cams, 1, box.zmin.p); // right
+	box.zmax.tex = projectwhole(cams, 1, box.zmin.p); // back
+	box.ymin.tex = projectwhole(cams, 1, box.zmin.p); // bottom
 	Mat out(3*SZ, 4*SZ, CV_8UC3);
 	box.ymax.tex.copyTo(out.rowRange(0, SZ).colRange(SZ, 2*SZ));
 	box.xmin.tex.copyTo(out.rowRange(SZ, 2*SZ).colRange(0, SZ));
