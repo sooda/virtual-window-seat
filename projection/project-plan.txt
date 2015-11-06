@@ -1,0 +1,19 @@
+given:
+	- all camera positions (world origin is fixed at one of them)
+	- all camera image planes too, i.e., have their corner 3D positions
+	- known cube coordinates around the whole thing
+
+need:
+	image coordinates of all camera plane corners
+
+plan:
+	- for each camera:
+		- obtain camera origin and image plane corners in world reference
+		- for each plane (can predetermine):
+			- for each corner:
+				- obtain unit vector v from camera to corner c
+				- intersect camera + d*v = plane
+				- obtain projected point p on plane, in global 3d coords
+				- need this coord in image pixel 2D
+				- xform this point p to plane reference coords
+				- z is always zero, just map x and y to pixel units and there it is
