@@ -259,6 +259,19 @@ void test2() {
 			},
 			imread("cam0.png")
 		},
+		{
+			camera{
+
+				{}, // pos: first cam sits at origin
+				rotx(10.0f*3.14159f/180.0f)*ones(), // local to world: camera sits at origin. positive rotation here tilts the cam down because local2world, not camera's rot
+				{
+					0.50f, // w (all these three in same units)
+					0.25f, // h
+					1.0f // f
+				}
+			},
+			imread("cam1.png")
+		},
 	};
 	skybox box;
 	// world point to plane: plane is backed off z axis, some left and down
@@ -285,12 +298,14 @@ void test2() {
 	//      top
 	// left front right back
 	//      bottom
-	box.ymax.tex = projectwhole(cams, 1, box.zmin.p); // top
-	box.xmin.tex = projectwhole(cams, 1, box.zmin.p); // left
-	box.zmin.tex = projectwhole(cams, 1, box.zmin.p); // front
-	box.xmax.tex = projectwhole(cams, 1, box.zmin.p); // right
-	box.zmax.tex = projectwhole(cams, 1, box.zmin.p); // back
-	box.ymin.tex = projectwhole(cams, 1, box.zmin.p); // bottom
+
+	// FIXME all planes properly
+	box.ymax.tex = projectwhole(cams, 2, box.zmin.p); // top
+	box.xmin.tex = projectwhole(cams, 2, box.zmin.p); // left
+	box.zmin.tex = projectwhole(cams, 2, box.zmin.p); // front
+	box.xmax.tex = projectwhole(cams, 2, box.zmin.p); // right
+	box.zmax.tex = projectwhole(cams, 2, box.zmin.p); // back
+	box.ymin.tex = projectwhole(cams, 2, box.zmin.p); // bottom
 	Mat out(3*SZ, 4*SZ, CV_8UC3);
 	box.ymax.tex.copyTo(out.rowRange(0, SZ).colRange(SZ, 2*SZ));
 	box.xmin.tex.copyTo(out.rowRange(SZ, 2*SZ).colRange(0, SZ));
