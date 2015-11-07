@@ -5,8 +5,6 @@
 #include <opencv2/gpu/gpu.hpp>
 #include <array>
 
-//#define CAMS
-
 using namespace std;
 using namespace cv;
 
@@ -21,6 +19,12 @@ typedef Point3f pt3;
 
 #define SZ 512
 #define SZ_F 512.0f
+
+Mat rot180(Mat m) {
+	transpose(m, m);
+	flip(m, m, 0);
+	return m;
+}
 
 vec3 invpos(mat4 m) {
 	Mat n(m);
@@ -342,6 +346,9 @@ Mat projectwhole(camdata *cams, int ncams, plane p) {
 	return full;
 }
 
+#define TEST 0
+//#define CAMS
+
 void test2() {
 #ifdef CAMS
 	static VideoCapture cap1(0);
@@ -359,13 +366,47 @@ void test2() {
 	cap1 >> a;
 	cap2 >> b;
 #endif
+#if !TEST
+	static VideoCapture cap[4];
+	static int initd;
+
+	if (!initd) {
+		initd=1;
+		for (int i = 0; i < 4; i++) {
+			cout << "open " << i << endl;
+			if (!cap[i].open(i))
+				throw "nope";
+			cap[i].set(CV_CAP_PROP_FRAME_WIDTH, 320);
+			cap[i].set(CV_CAP_PROP_FRAME_HEIGHT, 240);
+		}
+	}
+	Mat camfront, camright, camleft, camdown;
+	cap[0] >> camfront;
+	cap[1] >> camright;
+	cap[2] >> camleft;
+	cap[3] >> camdown;
+	flip(camright, camright, -1);
+	flip(camleft, camleft, -1);
+	cout << "hox:" << endl;
+	cout << camfront.size() << endl;
+	cout << camright.size() << endl;
+	cout << camleft.size() << endl;
+	cout << camdown.size() << endl;
+#endif
 	float w = 1.53f; // 2*tan(75deg/2)
 	float h = w/640.0*480.0; // ~1.15
 	//w=1.0f;h=1.0f; // should be half of the screen with these
 
 	static float ang;
 	ang += deg2rad(3);
+#if TEST
 	array<camdata, 8> cams ={ {
+#else
+	array<camdata, 4> cams ={ {
+#endif
+
+	
+#if TEST
 		{ camera{
 				ones(),
 				{ w, h, 1.0f }
@@ -424,6 +465,32 @@ void test2() {
 			},
 			imread("camback.png")
 		}
+#else
+		{ camera{
+				ones(),
+				{ w, h, 1.0f }
+			},
+			camfront,
+		},
+		{ camera{
+				roty(deg2rad(-90.0f))*rotx(deg2rad(20.0f)),
+				{ w, h, 1.0f }
+			},
+			camright,
+		},
+		{ camera{
+				roty(deg2rad(90.0f))*rotx(deg2rad(20.0f)),
+				{ w, h, 1.0f }
+			},
+			camleft,
+		},
+		{ camera{
+				rotx(deg2rad(-90.0f)),
+				{ w, h, 1.0f }
+			},
+			camdown
+		},
+#endif
 	}};
 	skybox box;
 	cout << frontbox_world_to_local() << endl;
