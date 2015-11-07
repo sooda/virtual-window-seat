@@ -17,8 +17,8 @@ typedef Vec2f vec2;
 typedef Point2f pt2;
 typedef Point3f pt3;
 
-#define SZ 1024
-#define SZ_F 1024.0f
+#define SZ 512
+#define SZ_F 512.0f
 
 vec3 invpos(mat4 m) {
 	Mat n(m);
@@ -506,7 +506,7 @@ void test2() {
 	box.ymin.tex.copyTo(out.rowRange(2*SZ, 3*SZ).colRange(SZ, 2*SZ));
 	imwrite("outfull.png", out);
 	Size s=out.size();
-	resize(out,out,Size(s.width/8,s.height/8));
+	resize(out,out,Size(s.width/4,s.height/4));
 	namedWindow("outfull.png", 1);
 	imshow("outfull.png", out);
 }
