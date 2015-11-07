@@ -365,7 +365,7 @@ void test2() {
 		{
 			camera{
 
-				roty(deg2rad(45.0f)),
+				roty(deg2rad(45.0f))*translate(0.5f, 0.0f, 0.0f),
 				{
 					0.50f, // w (all these three in same units)
 					0.50f, // h
