@@ -2,6 +2,7 @@ package com.example.lauri.ogltest;
 
 import android.app.ActionBar;
 import android.content.Context;
+import android.content.res.AssetFileDescriptor;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -10,9 +11,11 @@ import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.media.MediaPlayer;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener{
 
@@ -24,6 +27,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private float[] mag;
     private Sensuel sens;
     private float[] rotation;
+
+    private MediaPlayer mMediaPlayer = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)  {
@@ -55,7 +60,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         sens = new Sensuel();
 
-        glview = new AeroSurfaceView(this, sens);
+        mMediaPlayer = new MediaPlayer();
+
+        try {
+            AssetFileDescriptor afd = getResources().openRawResourceFd(R.raw.testvideo);
+            mMediaPlayer.setDataSource(
+                    afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+            afd.close();
+        } catch (Exception e) {
+            Log.e("Shit Activity", e.getMessage(), e);
+        }
+
+        glview = new AeroSurfaceView(this, sens, mMediaPlayer);
         setContentView(glview);
     }
 
@@ -79,6 +95,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             sens.testx = grav[0];
             sens.testy = grav[1];
         }
+
+        if(event.sensor.getType() == Sensor.TYPE_GRAVITY) {
+            float[] asdf = event.values;
+            sens.testx = asdf[0];
+            //sens.testy = asdf[2];
+        }
+
         else if(event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
             mag = event.values;
         SensorManager.getRotationMatrix(rotation, new float[16], grav, mag);
