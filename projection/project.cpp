@@ -20,8 +20,13 @@ typedef Point3f pt3;
 #define SZ_F 1024.0f
 
 struct camera {
-	vec3 pos;
 	mat4 local_to_world;
+	vec3 pos() {
+		return -vec3(
+				local_to_world(0, 3),
+				local_to_world(1, 3),
+				local_to_world(2, 3));
+	}
 	struct {
 		float w;
 		float h;
@@ -118,13 +123,13 @@ vec2 camplane_to_plane(camera c, vec2 pt_2d, plane p) {
 	vec4 local_3d(pt_2d[0], pt_2d[1], -1.0f, 1.0f); // homog, note z dir
 	// on virtual image plane in global coord
 	vec4 pt_3d_hom = c.local_to_world * local_3d;
-	cout << "pt 3d hom: " << pt_3d_hom << endl;
+	cout << "pt 3d hom, in world: " << pt_3d_hom << endl;
 	vec3 pt_3d(ptfromhom(pt_3d_hom));
-	vec3 v = unit(pt_3d - c.pos);
+	vec3 v = unit(pt_3d - c.pos());
 	cout << "v: " << v << endl;
-	float t = intersect_vec_plane(c.pos, v, p);
-	vec3 pt_on_plane = c.pos + t * v;
-	cout << "pt on plane: " << pt_on_plane << endl;
+	float t = intersect_vec_plane(c.pos(), v, p);
+	vec3 pt_on_plane = c.pos() + t * v;
+	cout << "pt on plane: " << t << " units => " << pt_on_plane << endl;
 	vec4 pt_on_plane_hom = hompt(pt_on_plane);
 
 	vec4 pt_on_plane_as_2d = p.world_to_local * pt_on_plane_hom;
@@ -197,7 +202,6 @@ void test() {
 		{
 			camera{
 
-				{}, // pos: first cam sits at origin
 				rotx(30.0f*3.14159f/180.0f)*ones(), // local to world: camera sits at origin. positive rotation here tilts the cam down because local2world, not camera's rot
 				{
 					0.50f, // w (all these three in same units)
@@ -233,11 +237,57 @@ void test() {
 	imwrite("out.png", out);
 }
 
+// le right side of teh wurld
+void testb() {
+	camdata cams[] = {
+		{
+			camera{
+				// 90 rotated here means turn left to face on the front in world
+				roty(-90.0f*3.14159f/180.0f)*ones(),
+				{
+					0.50f, // w (all these three in same units)
+					0.50f, // h
+					1.0f // f
+				}
+			},
+			imread("cam0.png")
+		},
+	};
+	skybox box;
+	// world point to plane: plane is backed off z axis, some left and down
+	// so invert it. z -2 in world is z 0 on plane
+	// size is twice as big as image plane, so 4 per dir
+	// also shift the corner properly
+	mat4 rot = roty(90.0f*3.1415926526f/180.0f);
+	cout<<"rot"<<rot<<endl;
+	// rot whatever there is first to front then translate similarly as for the front plane
+	mat4 wtl = translate(2.0f, 2.0f, 2.0f)*rot;
+	cout<<"tran"<<translate(2.0f,2.0f,2.0f)<<endl;
+	// size of the whole plane is now 4x4, need to make it 1x1
+	wtl = scale(1.0f/4.0f, 1.0f/4.0f, 1.0f) * wtl;
+	// and then in pixel coords!
+	wtl = scale(SZ_F, SZ_F, 1.0f) * wtl;
+	// FIXME TODO XXX: topleft or bottomleft origin?
+
+	cout << "wtl:"<<wtl << endl;
+	// plane: n.p + d == 0
+	box.zmin.p = plane{
+		{-1.0f, 0.0f, 0.0f}, // normal towards box center
+		2.0f, // dist: plane normal -1, mul by coord 2, add 2 to get 0
+		wtl // world_to_local
+	};
+	// first camera looking into zmin (front)
+	// exactly at the middle
+	Mat out = project(cams[0].c, box.zmin.p, cams[0].frame);
+	imwrite("outb.png", out);
+}
+
 // one whole tex, sum images over
 // TODO what to do with overlap? now just sum them
 Mat projectwhole(camdata *cams, int ncams, plane p) {
 	Mat full = project(cams[0].c, p, cams[0].frame);
 	for (int i = 1; i < ncams; i++) {
+		cout<<"CAM::::"<<cams[i].c.local_to_world<<endl;
 		Mat next = project(cams[i].c, p, cams[i].frame);
 		full += next;
 	}
@@ -249,8 +299,7 @@ void test2() {
 		{
 			camera{
 
-				{}, // pos: first cam sits at origin
-				rotx(30.0f*3.14159f/180.0f)*ones(), // local to world: camera sits at origin. positive rotation here tilts the cam down because local2world, not camera's rot
+				rotx(00.0f*3.14159f/180.0f)*ones(), // local to world: camera sits at origin. positive rotation here tilts the cam down because local2world, not camera's rot
 				{
 					0.50f, // w (all these three in same units)
 					0.25f, // h
@@ -262,8 +311,7 @@ void test2() {
 		{
 			camera{
 
-				{}, // pos: first cam sits at origin
-				rotx(10.0f*3.14159f/180.0f)*ones(), // local to world: camera sits at origin. positive rotation here tilts the cam down because local2world, not camera's rot
+				translate(0.0f, 0.0f, 0.0f)*roty(-90.0f*3.14159f/180.0f)*ones(), // local to world: camera axes rotated first then translated. positive rotation here tilts the cam down because local2world, not camera's rot
 				{
 					0.50f, // w (all these three in same units)
 					0.25f, // h
@@ -278,7 +326,8 @@ void test2() {
 	// so invert it. z -2 in world is z 0 on plane
 	// size is twice as big as image plane, so 4 per dir
 	// also shift the corner properly
-	mat4 wtl = translate(2.0f, 2.0f, 2.0f);
+	mat4 wtl;
+	wtl = translate(2.0f, 2.0f, 2.0f);
 	// size of the whole plane is now 4x4, need to make it 1x1
 	wtl = scale(1.0f/4.0f, 1.0f/4.0f, 1.0f) * wtl;
 	// and then in pixel coords!
@@ -286,11 +335,23 @@ void test2() {
 	// FIXME TODO XXX: topleft or bottomleft origin?
 
 	cout << wtl << endl;
+	// normals pointing inside the box here, dunno if it matters
 	// plane: n.p + d == 0
 	box.zmin.p = plane{
-		{0.0f, 0.0f, 1.0f}, // normal towards box center
+		{0.0f, 0.0f, 1.0f},
 		2.0f, // dist: plane normal 1, mul by coord -2, add 2 to get 0
 		wtl // world_to_local
+	};
+	wtl = roty(-90.0f/180.0f*3.14159f);
+	wtl = translate(2.0f, 2.0f, 2.0f)*wtl;
+	// size of the whole plane is now 4x4, need to make it 1x1
+	wtl = scale(1.0f/4.0f, 1.0f/4.0f, 1.0f) * wtl;
+	// and then in pixel coords!
+	wtl = scale(SZ_F, SZ_F, 1.0f) * wtl;
+	box.xmax.p = plane{
+		{-1.0f, 0.0f, 0.0f},
+		2.0f,
+		wtl
 	};
 	// first camera looking into zmin (front)
 	// exactly at the middle
@@ -301,9 +362,9 @@ void test2() {
 
 	// FIXME all planes properly
 	box.ymax.tex = projectwhole(cams, 2, box.zmin.p); // top
-	box.xmin.tex = projectwhole(cams, 2, box.zmin.p); // left
+	box.xmin.tex = projectwhole(cams, 2, box.xmin.p); // left
 	box.zmin.tex = projectwhole(cams, 2, box.zmin.p); // front
-	box.xmax.tex = projectwhole(cams, 2, box.zmin.p); // right
+	box.xmax.tex = projectwhole(cams, 2, box.xmax.p); // right
 	box.zmax.tex = projectwhole(cams, 2, box.zmin.p); // back
 	box.ymin.tex = projectwhole(cams, 2, box.zmin.p); // bottom
 	Mat out(3*SZ, 4*SZ, CV_8UC3);
@@ -317,6 +378,7 @@ void test2() {
 }
 
 int main() {
-	test();
-	test2();
+	//test();
+	testb();
+	//test2();
 }
