@@ -20,14 +20,27 @@ typedef Point3f pt3;
 #define SZ 1024
 #define SZ_F 1024.0f
 
+vec3 invpos(mat4 m) {
+	Mat n(m);
+	mat3 r = n.rowRange(0, 3).colRange(0, 3);
+	cout << "ww" << endl;
+	vec3 t = n.rowRange(0, 3).col(3);
+	cout << "qq" << endl;
+	return -r.t() * t;
+}
+
 struct camera {
 	mat4 local_to_world;
 	vec3 pos() {
 		// in global coords
+#if 0
 		return -vec3(
 				local_to_world(0, 3),
 				local_to_world(1, 3),
 				local_to_world(2, 3));
+#else
+		return invpos(local_to_world);
+#endif
 	}
 	struct {
 		float w;
@@ -336,11 +349,23 @@ mat4 frontbox_world_to_local() {
 }
 
 void test2() {
-	array<camdata,6> cams ={ {
+	array<camdata,7> cams ={ {
 		{
 			camera{
 
 				ones(),
+				{
+					0.50f, // w (all these three in same units)
+					0.50f, // h
+					1.0f // f
+				}
+			},
+			imread("camfront.png")
+		},
+		{
+			camera{
+
+				roty(deg2rad(45.0f)),
 				{
 					0.50f, // w (all these three in same units)
 					0.50f, // h
