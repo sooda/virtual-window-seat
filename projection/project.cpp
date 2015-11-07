@@ -104,6 +104,7 @@ mat4 roty(float a) {
 	              -s, 0.0f,    c, 0.0f,
 	            0.0f, 0.0f, 0.0f, 1.0f);
 }
+#if 0
 mat4 rotz(float a) {
 	float c = cos(a);
 	float s = sin(a);
@@ -112,6 +113,7 @@ mat4 rotz(float a) {
 	            0.0f, 0.0f, 1.0f, 0.0f,
 	            0.0f, 0.0f, 0.0f, 1.0f);
 }
+#endif
 
 mat4 translate(float x, float y, float z) {
 	mat4 m(ones());
@@ -149,7 +151,8 @@ vec2 camplane_to_plane(camera c, vec2 pt_2d, plane p) {
 	cout << "v: " << v << endl;
 	float t = intersect_vec_plane(c.pos(), v, p);
 	if (t < 0) {
-		cout << "negative ray ignored" << endl;
+		// FIXME: other side may be negative nicely if the other is not, then it just wraps infinitely
+		cout << "negative ray ignored " << t << endl;
 #if 0
 		return vec2();
 #endif
@@ -278,14 +281,14 @@ void test() {
 	imwrite("out.png", out);
 }
 
-static float boxdim = 2.0f; // dist from cam, half box
+static float boxdim = 10.0f; // dist from cam, half box
 // "local" = in 2d coords and units already here
 mat4 frontbox_world_to_local() {
 	mat4 wtl;
 	// position the corner properly, and get away from cam
 	wtl = translate(boxdim, boxdim, boxdim);
 	// size of the whole plane is now 2dim x 2dim, need to make it 1x1 (z isn't important at this point anymore)
-	wtl = scale(0.5f/boxdim, 0.5f/boxdim, 1.0f) * wtl;
+	wtl = scale(1.0f/(2.0f*boxdim), 1.0f/(2.0f*boxdim), 1.0f) * wtl;
 	// and then in pixel coords!
 	wtl = scale(SZ_F, SZ_F, 1.0f) * wtl;
 	return wtl;
@@ -295,21 +298,17 @@ void testb() {
 	camdata cams[] = {
 		{
 			camera{
-				rotx(deg2rad(-90.0f)),
-				{
-					0.50f,
-					0.50f,
-					1.0f
-				}
+				rotx(deg2rad(30.0f)),
+				{ 0.50f, 0.50f, 1.0f }
 			},
-			imread("camfront.png")
+			imread("camup.png")
 		},
 	};
 	skybox box;
 	box.zmin.p = plane{
-		{0.0f, 1.0f, 0.0f},
+		{0.0f, -1.0f, 0.0f},
 		boxdim,
-		frontbox_world_to_local() * rotx(deg2rad(90.0f))
+		frontbox_world_to_local() * rotx(deg2rad(-90.0f))
 	};
 	Mat out = project(cams[0].c, box.zmin.p, cams[0].frame);
 	imwrite("outb.png", out);
@@ -318,8 +317,10 @@ void testb() {
 // one whole tex, sum images over
 // TODO what to do with overlap? now just sum them
 Mat projectwhole(camdata *cams, int ncams, plane p) {
+	cout<<"IDX:0"<<endl;
 	Mat full = project(cams[0].c, p, cams[0].frame);
 	for (int i = 1; i < ncams; i++) {
+		cout<<"IDX:"<<i<<endl;
 		cout<<"CAM::::"<<cams[i].c.local_to_world<<endl;
 		Mat next = project(cams[i].c, p, cams[i].frame);
 		full += next;
@@ -329,106 +330,59 @@ Mat projectwhole(camdata *cams, int ncams, plane p) {
 
 void test2() {
 	static float ang;
-	ang += deg2rad(10);
-	array<camdata,8> cams ={ {
-		{
-			camera{
-
+	ang = deg2rad(10);//+= deg2rad(10);
+	array<camdata, 8> cams ={ {
+		{ camera{
 				ones(),
-				{
-					0.50f, // w (all these three in same units)
-					0.50f, // h
-					1.0f // f
-				}
+				{ 0.50f, 0.50f, 1.0f }
 			},
 			imread("camfront.png")
 		},
-		{
-			camera{
-
-				roty(ang)/**translate(0.5f, 0.0f, 0.5f)*/, // left and back a bit
-				{
-					0.50f, // w (all these three in same units)
-					0.50f, // h
-					1.0f // f
-				}
+#if 1
+		{ camera{
+				roty(ang),
+				{ 0.50f, 0.50f, 1.0f }
 			},
 			imread("blank.png")
 		},
-		{
-			camera{
-
-				rotx(ang)/**translate(0.5f, 0.0f, 0.5f)*/, // left and back a bit
-				{
-					0.50f, // w (all these three in same units)
-					0.50f, // h
-					1.0f // f
-				}
+#endif
+		{ camera{
+				rotx(ang),
+				{ 0.50f, 0.50f, 1.0f }
 			},
 			imread("blank.png")
 		},
-		{
-			camera{
-
-				translate(0.0f, 0.0f, 0.0f)*roty(deg2rad(-90.0f))*ones(),
-				{
-					0.50f,
-					0.50f,
-					1.0f
-				}
+		{ camera{
+				roty(deg2rad(-90.0f)),
+				{ 0.50f, 0.50f, 1.0f }
 			},
 			imread("camright.png")
 		},
-		{
-			camera{
-
-				translate(0.0f, 0.0f, 0.0f)*roty(deg2rad(90.0f))*ones(),
-				{
-					0.50f,
-					0.50f,
-					1.0f
-				}
+		{ camera{
+				roty(deg2rad(90.0f)),
+				{ 0.50f, 0.50f, 1.0f }
 			},
 			imread("camleft.png")
 		},
-		{
-			camera{
-
-				translate(0.0f, 0.0f, 0.0f)*rotx(deg2rad(90.0f))*ones(),
-				{
-					0.50f,
-					0.50f,
-					1.0f
-				}
+		{ camera{
+				rotx(deg2rad(90.0f)),
+				{ 0.50f, 0.50f, 1.0f }
 			},
 			imread("camup.png")
 		},
-		{
-			camera{
-
-				translate(0.0f, 0.0f, 0.0f)*rotx(deg2rad(-90.0f))*ones(),
-				{
-					0.50f,
-					0.50f,
-					1.0f
-				}
+		{ camera{
+				rotx(deg2rad(-90.0f)),
+				{ 0.50f, 0.50f, 1.0f }
 			},
 			imread("camdown.png")
 		},
-		{
-			camera{
-
-				translate(0.0f, 0.0f, 0.0f)*roty(deg2rad(180.0f))*ones(),
-				{
-					0.50f,
-					0.50f,
-					1.0f
-				}
+		{ camera{
+				roty(deg2rad(180.0f)),
+				{ 0.50f, 0.50f, 1.0f }
 			},
 			imread("camback.png")
 		}
 	}};
-	float boxdim = 2.0f;
 	skybox box;
 	cout << frontbox_world_to_local() << endl;
 	// normals pointing inside the box here, dunno if it matters
@@ -477,12 +431,19 @@ void test2() {
 	// left front right back
 	//      bottom
 
+	cout<<"top"<<endl;
 	box.ymax.tex = projectwhole(cams.data(), cams.size(), box.ymax.p); // top
+	cout<<"left"<<endl;
 	box.xmin.tex = projectwhole(cams.data(), cams.size(), box.xmin.p); // left
+	cout<<"front"<<endl;
 	box.zmin.tex = projectwhole(cams.data(), cams.size(), box.zmin.p); // front
+	cout<<"right"<<endl;
 	box.xmax.tex = projectwhole(cams.data(), cams.size(), box.xmax.p); // right
+	cout<<"back"<<endl;
 	box.zmax.tex = projectwhole(cams.data(), cams.size(), box.zmax.p); // back
+	cout<<"bottom"<<endl;
 	box.ymin.tex = projectwhole(cams.data(), cams.size(), box.ymin.p); // bottom
+	cout<<endl<<endl<<endl<<endl;
 	Mat out(3*SZ, 4*SZ, CV_8UC3, Scalar(0));
 	box.ymax.tex.copyTo(out.rowRange(0, SZ).colRange(SZ, 2*SZ));
 	box.xmin.tex.copyTo(out.rowRange(SZ, 2*SZ).colRange(0, SZ));
@@ -499,12 +460,21 @@ void test2() {
 
 int main() {
 #if 0
+	cout << rotx(0) << endl;
+	cout << roty(0) << endl;
+	cout << rotz(0) << endl;
+	cout << "--" << endl;
+	cout << rotx(deg2rad(90)) << endl;
+	cout << roty(deg2rad(90)) << endl;
+	cout << rotz(deg2rad(90)) << endl;
+	return 0;
+#endif
+#if 0
 	testb();
 	return 0;
-#else
+#endif
 	for (;;) {
 		test2();
 		waitKey(1);
 	}
-#endif
 }
