@@ -74,8 +74,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     public void onSensorChanged(SensorEvent event){
-        if(event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)
+        if(event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             grav = event.values;
+            sens.testx = grav[0];
+            sens.testy = grav[1];
+        }
         else if(event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
             mag = event.values;
         SensorManager.getRotationMatrix(rotation, new float[16], grav, mag);

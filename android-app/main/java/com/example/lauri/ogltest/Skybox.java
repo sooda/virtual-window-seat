@@ -42,57 +42,57 @@ public class Skybox {
             "uniform sampler2D texture;" +
             "varying vec2 UV;" +
             "void main() {" +
-            "gl_FragColor = texture2D(texture, UV);}";
+            "gl_FragColor = texture2D(texture, vec2(UV.x, 1.0-UV.y));}";
             //"gl_FragColor = vec4(0.5, UV.y, UV.x, 1.0);}";
 
     static float cVertices[] = {
         // Front
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-        0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.25f, 1.0f/3.0f,
+        0.5f, -0.5f, -0.5f,  0.5f, 1.0f/3.0f,
+        0.5f,  0.5f, -0.5f,  0.5f, 2.0f/3.0f,
+        0.5f,  0.5f, -0.5f,  0.5f, 2.0f/3.0f,
+        -0.5f,  0.5f, -0.5f,  0.25f, 2.0f/3.0f,
+        -0.5f, -0.5f, -0.5f,  0.25f, 1.0f/3.0f,
 
         // Back
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  1.0f, 1.0f/3.0f,
+        0.5f, -0.5f,  0.5f,  0.75f, 1.0f/3.0f,
+        0.5f,  0.5f,  0.5f,  0.75f, 2.0f/3.0f,
+        0.5f,  0.5f,  0.5f,  0.75f, 2.0f/3.0f,
+        -0.5f,  0.5f,  0.5f,   1.0f, 2.0f/3.0f,
+        -0.5f, -0.5f,  0.5f,   1.0f, 1.0f/3.0f,
 
         // Left
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 2.0f/3.0f,
+        -0.5f,  0.5f, -0.5f,  0.25f, 2.0f/3.0f,
+        -0.5f, -0.5f, -0.5f,  0.25f, 1.0f/3.0f,
+        -0.5f, -0.5f, -0.5f,  0.25f, 1.0f/3.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 1.0f/3.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 2.0f/3.0f,
 
         // Right
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  0.75f, 2.0f/3.0f,
+        0.5f,  0.5f, -0.5f,  0.5f, 2.0f/3.0f,
+        0.5f, -0.5f, -0.5f,  0.5f, 1.0f/3.0f,
+        0.5f, -0.5f, -0.5f,  0.5f, 1.0f/3.0f,
+        0.5f, -0.5f,  0.5f,  0.75f, 1.0f/3.0f,
+        0.5f,  0.5f,  0.5f,  0.75f, 2.0f/3.0f,
 
         // Down
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.25f, 1.0f/3.0f,
+        0.5f, -0.5f, -0.5f,  0.5f, 1.0f/3.0f,
+        0.5f, -0.5f,  0.5f,  0.5f, 0.0f,
+        0.5f, -0.5f,  0.5f,  0.5f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.25f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.25f, 1.0f/3.0f,
 
         // Up
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+        -0.5f,  0.5f, -0.5f,  0.25f, 2.0f/3.0f,
+        0.5f,  0.5f, -0.5f,  0.5f, 2.0f/3.0f,
+        0.5f,  0.5f,  0.5f,  0.5f, 1.0f,
+        0.5f,  0.5f,  0.5f,  0.5f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.25f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.25f, 2.0f/3.0f
     };
 
     public Skybox(Context context) {
@@ -108,7 +108,7 @@ public class Skybox {
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inScaled = false;
 
-        Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.sbox1, options);
+        Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.sbox2, options);
 
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texture[0]);
         checkGlError("glBindTexture");

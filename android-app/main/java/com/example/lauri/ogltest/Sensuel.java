@@ -5,9 +5,13 @@ package com.example.lauri.ogltest;
  */
 public class Sensuel {
     private float[] or;
+    public float testx;
+    public float testy;
 
     public Sensuel() {
         or = new float[16];
+        testx = 0.0f;
+        testy = 0.0f;
         //or = 0.0f;
     }
 

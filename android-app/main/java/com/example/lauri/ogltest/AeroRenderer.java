@@ -55,8 +55,12 @@ public class AeroRenderer implements GLSurfaceView.Renderer {
         //Matrix.setLookAtM(mViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
 
         //mViewMatrix = sens.getOrientation();
-        Matrix.multiplyMM(mViewMatrix, 0, sens.getOrientation(), 0, mvp, 0);
-        //Matrix.setLookAtM(mViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
+        //Matrix.multiplyMM(mViewMatrix, 0, sens.getOrientation(), 0, mvp, 0);
+        Matrix.setLookAtM(mViewMatrix, 0,
+                0, 0, 0,
+                //(float)Math.sin(System.nanoTime()*0.000000001f), 0f, (float)Math.cos(System.nanoTime()*0.000000001f),
+                0, 1, 0,
+                0f, 0.0f, 1.0f);
         Matrix.multiplyMM(mvp, 0, mProjMatrix, 0, mViewMatrix, 0);
         //GLES20.glClearColor(Math.abs(mvp[1]), (float)Math.sin(System.nanoTime()*0.000001f), 0.0f, 1.0f);
 
