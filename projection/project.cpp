@@ -5,7 +5,7 @@
 #include <opencv2/gpu/gpu.hpp>
 #include <array>
 
-#define CAMS
+//#define CAMS
 
 using namespace std;
 using namespace cv;
@@ -221,7 +221,7 @@ Mat obtain_dest(camera c, plane p, vec2 scale, float texw, float texh) {
 
 // project 'src' tex taken from c onto plane p, return whole resulting tex
 Mat project(camera c, plane p, Mat src) {
-	vec2 scale(c.physical.w / c.physical.f, c.physical.h / c.physical.f);
+	vec2 scale(0.5f * c.physical.w / c.physical.f, 0.5f * c.physical.h / c.physical.f);
 	Mat m;
 	try {
 		m = obtain_dest(c, p, scale, src.size().width, src.size().height);
@@ -295,7 +295,7 @@ void test() {
 }
 
 // FIXME this gets scaled ughh, real scaling in camera size. tweak wtl below to just center it, the eqs have boxdim already for proper scaling
-static float boxdim = 5.0f; // dist from cam, half box
+static float boxdim = 1.0f; // dist from cam, half box
 // "local" = in 2d coords and units already here
 mat4 frontbox_world_to_local() {
 	mat4 wtl;
@@ -359,8 +359,9 @@ void test2() {
 	cap1 >> a;
 	cap2 >> b;
 #endif
-	float w = 0.90f;
-	float h = 0.90f;
+	float w = 1.53f; // 2*tan(75deg/2)
+	float h = w/640.0*480.0; // ~1.15
+	//w=1.0f;h=1.0f; // should be half of the screen with these
 
 	static float ang;
 	ang += deg2rad(3);
