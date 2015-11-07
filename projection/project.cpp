@@ -23,6 +23,7 @@ typedef Point3f pt3;
 struct camera {
 	mat4 local_to_world;
 	vec3 pos() {
+		// in global coords
 		return -vec3(
 				local_to_world(0, 3),
 				local_to_world(1, 3),
@@ -42,6 +43,10 @@ struct plane {
 	// to the bottom-left corner origin
 	mat4 world_to_local;
 };
+
+float deg2rad(float deg) {
+	return deg / 180.0f * M_PI;
+}
 
 vec3 unit(vec3 v) {
 	return v * (1.0f / norm(v));
@@ -315,12 +320,25 @@ Mat projectwhole(camdata *cams, int ncams, plane p) {
 	return full;
 }
 
+static float boxdim = 2.0f; // dist from cam, half box
+// "local" = in 2d coords and units already here
+mat4 frontbox_world_to_local() {
+	mat4 wtl;
+	// position the corner properly, and get away from cam
+	wtl = translate(boxdim, boxdim, boxdim);
+	// size of the whole plane is now 2dim x 2dim, need to make it 1x1 (z isn't important at this point anymore)
+	wtl = scale(0.5f/boxdim, 0.5f/boxdim, 1.0f) * wtl;
+	// and then in pixel coords!
+	wtl = scale(SZ_F, SZ_F, 1.0f) * wtl;
+	return wtl;
+}
+
 void test2() {
 	array<camdata,6> cams ={ {
 		{
 			camera{
 
-				rotx(00.0f*3.14159f/180.0f)*ones(), // local to world: camera sits at origin. positive rotation here tilts the cam down because local2world, not camera's rot
+				ones(),
 				{
 					0.50f, // w (all these three in same units)
 					0.50f, // h
@@ -332,11 +350,11 @@ void test2() {
 		{
 			camera{
 
-				translate(0.0f, 0.0f, 0.0f)*roty(-90.0f*3.14159f/180.0f)*ones(),
+				translate(0.0f, 0.0f, 0.0f)*roty(deg2rad(-90.0f))*ones(),
 				{
-					0.50f, // w (all these three in same units)
-					0.50f, // h
-					1.0f // f
+					0.50f,
+					0.50f,
+					1.0f
 				}
 			},
 			imread("camright.png")
@@ -344,11 +362,11 @@ void test2() {
 		{
 			camera{
 
-				translate(0.0f, 0.0f, 0.0f)*roty(90.0f*3.14159f/180.0f)*ones(),
+				translate(0.0f, 0.0f, 0.0f)*roty(deg2rad(90.0f))*ones(),
 				{
-					0.50f, // w (all these three in same units)
-					0.50f, // h
-					1.0f // f
+					0.50f,
+					0.50f,
+					1.0f
 				}
 			},
 			imread("camleft.png")
@@ -356,11 +374,11 @@ void test2() {
 		{
 			camera{
 
-				translate(0.0f, 0.0f, 0.0f)*rotx(90.0f*3.14159f/180.0f)*ones(),
+				translate(0.0f, 0.0f, 0.0f)*rotx(deg2rad(90.0f))*ones(),
 				{
-					0.50f, // w (all these three in same units)
-					0.50f, // h
-					1.0f // f
+					0.50f,
+					0.50f,
+					1.0f
 				}
 			},
 			imread("camup.png")
@@ -368,11 +386,11 @@ void test2() {
 		{
 			camera{
 
-				translate(0.0f, 0.0f, 0.0f)*rotx(-90.0f*3.14159f/180.0f)*ones(),
+				translate(0.0f, 0.0f, 0.0f)*rotx(deg2rad(-90.0f))*ones(),
 				{
-					0.50f, // w (all these three in same units)
-					0.50f, // h
-					1.0f // f
+					0.50f,
+					0.50f,
+					1.0f
 				}
 			},
 			imread("camdown.png")
@@ -380,91 +398,50 @@ void test2() {
 		{
 			camera{
 
-				translate(0.0f, 0.0f, 0.0f)*rotx(-180.0f*3.14159f/180.0f)*ones(),
+				translate(0.0f, 0.0f, 0.0f)*rotx(deg2rad(-180.0f))*ones(),
 				{
-					0.50f, // w (all these three in same units)
-					0.50f, // h
-					1.0f // f
+					0.50f,
+					0.50f,
+					1.0f
 				}
 			},
 			imread("camback.png")
 		}
 	}};
+	float boxdim = 2.0f;
 	skybox box;
-	// world point to plane: plane is backed off z axis, some left and down
-	// so invert it. z -2 in world is z 0 on plane
-	// size is twice as big as image plane, so 4 per dir
-	// also shift the corner properly
-	mat4 wtl;
-	wtl = translate(2.0f, 2.0f, 2.0f);
-	// size of the whole plane is now 4x4, need to make it 1x1
-	wtl = scale(1.0f/4.0f, 1.0f/4.0f, 1.0f) * wtl;
-	// and then in pixel coords!
-	wtl = scale(SZ_F, SZ_F, 1.0f) * wtl;
-	// FIXME TODO XXX: topleft or bottomleft origin?
-
-	cout << wtl << endl;
+	cout << frontbox_world_to_local() << endl;
 	// normals pointing inside the box here, dunno if it matters
 	// plane: n.p + d == 0
 	box.zmin.p = plane{
 		{0.0f, 0.0f, 1.0f},
-		2.0f, // dist: plane normal 1, mul by coord -2, add 2 to get 0
-		wtl // world_to_local
+		boxdim,
+		frontbox_world_to_local()
 	};
-	wtl = roty(90.0f/180.0f*3.14159f);
-	wtl = translate(2.0f, 2.0f, 2.0f)*wtl;
-	// size of the whole plane is now 4x4, need to make it 1x1
-	wtl = scale(1.0f/4.0f, 1.0f/4.0f, 1.0f) * wtl;
-	// and then in pixel coords!
-	wtl = scale(SZ_F, SZ_F, 1.0f) * wtl;
 	box.xmax.p = plane{
 		{-1.0f, 0.0f, 0.0f},
-		2.0f,
-		wtl
+		boxdim,
+		frontbox_world_to_local() * roty(deg2rad(90.0f))
 	};
-	wtl = roty(-90.0f/180.0f*3.14159f);
-	wtl = translate(2.0f, 2.0f, 2.0f)*wtl;
-	// size of the whole plane is now 4x4, need to make it 1x1
-	wtl = scale(1.0f/4.0f, 1.0f/4.0f, 1.0f) * wtl;
-	// and then in pixel coords!
-	wtl = scale(SZ_F, SZ_F, 1.0f) * wtl;
 	box.xmin.p = plane{
 		{1.0f, 0.0f, 0.0f},
-		2.0f,
-		wtl
+		boxdim,
+		frontbox_world_to_local() * roty(deg2rad(-90.0f))
 	};
-	wtl = rotx(-90.0f/180.0f*3.14159f);
-	wtl = translate(2.0f, 2.0f, 2.0f)*wtl;
-	// size of the whole plane is now 4x4, need to make it 1x1
-	wtl = scale(1.0f/4.0f, 1.0f/4.0f, 1.0f) * wtl;
-	// and then in pixel coords!
-	wtl = scale(SZ_F, SZ_F, 1.0f) * wtl;
 	box.ymax.p = plane{
 		{0.0f, -1.0f, 0.0f},
-		2.0f,
-		wtl
+		boxdim,
+		frontbox_world_to_local() * rotx(deg2rad(-90.0f))
 	};
-	wtl = rotx(90.0f/180.0f*3.14159f);
-	wtl = translate(2.0f, 2.0f, 2.0f)*wtl;
-	// size of the whole plane is now 4x4, need to make it 1x1
-	wtl = scale(1.0f/4.0f, 1.0f/4.0f, 1.0f) * wtl;
-	// and then in pixel coords!
-	wtl = scale(SZ_F, SZ_F, 1.0f) * wtl;
 	box.ymin.p = plane{
 		{0.0f, 1.0f, 0.0f},
-		2.0f,
-		wtl
+		boxdim,
+		frontbox_world_to_local() * rotx(deg2rad(90.0f))
 	};
-	wtl = rotx(180.0f/180.0f*3.14159f);
-	wtl = translate(2.0f, 2.0f, 2.0f)*wtl;
-	// size of the whole plane is now 4x4, need to make it 1x1
-	wtl = scale(1.0f/4.0f, 1.0f/4.0f, 1.0f) * wtl;
-	// and then in pixel coords!
-	wtl = scale(SZ_F, SZ_F, 1.0f) * wtl;
 	box.zmax.p = plane{
 		{0.0f, 0.0f, -1.0f},
-		2.0f,
-		wtl
+		boxdim,
+		frontbox_world_to_local() * rotx(deg2rad(180.0f))
 	};
 	// first camera looking into zmin (front)
 	// exactly at the middle
@@ -473,7 +450,6 @@ void test2() {
 	// left front right back
 	//      bottom
 
-	// FIXME all planes properly
 	box.ymax.tex = projectwhole(cams.data(), cams.size(), box.ymax.p); // top
 	box.xmin.tex = projectwhole(cams.data(), cams.size(), box.xmin.p); // left
 	box.zmin.tex = projectwhole(cams.data(), cams.size(), box.zmin.p); // front
