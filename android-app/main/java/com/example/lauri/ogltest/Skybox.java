@@ -39,13 +39,14 @@ public class Skybox {
 
     private static final String fragShaderText =
             "precision mediump float;" +
-            //"uniform sampler2D texture;" +
+            "uniform sampler2D texture;" +
             "varying vec2 UV;" +
             "void main() {" +
-            //"gl_FragColor = texture2D(texture, UV);}";
-            "gl_FragColor = vec4(0.5, UV.y, UV.x, 1.0);}";
+            "gl_FragColor = texture2D(texture, UV);}";
+            //"gl_FragColor = vec4(0.5, UV.y, UV.x, 1.0);}";
 
     static float cVertices[] = {
+        // Front
         -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
@@ -53,6 +54,7 @@ public class Skybox {
         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
         -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
 
+        // Back
         -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
@@ -60,6 +62,7 @@ public class Skybox {
         -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
         -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
 
+        // Left
         -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
         -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
         -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
@@ -67,6 +70,7 @@ public class Skybox {
         -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
         -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
 
+        // Right
         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
@@ -74,6 +78,7 @@ public class Skybox {
         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
 
+        // Down
         -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
@@ -81,6 +86,7 @@ public class Skybox {
         -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
         -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
 
+        // Up
         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
@@ -89,14 +95,14 @@ public class Skybox {
         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
 
-    public Skybox(/*Context context*/) {
+    public Skybox(Context context) {
         ByteBuffer cb = ByteBuffer.allocateDirect(cVertices.length * 4);
         cb.order(ByteOrder.nativeOrder());
         vertexBuffer = cb.asFloatBuffer();
         vertexBuffer.put(cVertices);
         vertexBuffer.position(0);
 
-        /*int texture[] = new int[1];
+        int texture[] = new int[1];
         GLES20.glGenTextures(1, texture, 0);
 
         BitmapFactory.Options options = new BitmapFactory.Options();
@@ -113,7 +119,7 @@ public class Skybox {
 
         bitmap.recycle();
 
-        skyboxTexture = texture[0];*/
+        skyboxTexture = texture[0];
 
         int tmpVertShader = GLES20.glCreateShader(GLES20.GL_VERTEX_SHADER);
         GLES20.glShaderSource(tmpVertShader, vertShaderText);
@@ -138,8 +144,8 @@ public class Skybox {
         mMVPHandle = GLES20.glGetUniformLocation(mProgram, "vMVP");
         Log.e(TAG, "mMVPHandle: " + mMVPHandle);
         checkGlError("glGetUniformLocation");
-        //mTextureHandle = GLES20.glGetUniformLocation(mProgram, "texture");
-        //checkGlError("glGetUniformLocation");
+        mTextureHandle = GLES20.glGetUniformLocation(mProgram, "texture");
+        checkGlError("glGetUniformLocation");
 
         mPosHandle = GLES20.glGetAttribLocation(mProgram, "vPosition");
         checkGlError("glGetAttribLocation");
@@ -166,20 +172,20 @@ public class Skybox {
         GLES20.glVertexAttribPointer(mUVHandle, 2, GLES20.GL_FLOAT, false, stride, vertexBuffer);
         checkGlError("glVertexAttribPointer");
 
-        /*GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         checkGlError("glActiveTexture");
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, skyboxTexture);
         checkGlError("glBindTexture");
         Log.e(TAG, "mTextureHandle: " + mTextureHandle);
         GLES20.glUniform1i(mTextureHandle, 0);
 
-        checkGlError("glUniform1i");*/
+        checkGlError("glUniform1i");
 
         mMVPHandle = GLES20.glGetUniformLocation(mProgram, "vMVP");
         Log.e(TAG, "mMVPHandle: " + mMVPHandle);
         checkGlError("glGetUniformLocation");
-        /*mTextureHandle = GLES20.glGetUniformLocation(mProgram, "texture");
-        checkGlError("glGetUniformLocation");*/
+        mTextureHandle = GLES20.glGetUniformLocation(mProgram, "texture");
+        checkGlError("glGetUniformLocation");
 
         mPosHandle = GLES20.glGetAttribLocation(mProgram, "vPosition");
         checkGlError("glGetAttribLocation");

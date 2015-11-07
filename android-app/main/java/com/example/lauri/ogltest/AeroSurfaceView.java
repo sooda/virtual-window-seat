@@ -16,7 +16,7 @@ public class AeroSurfaceView extends GLSurfaceView {
         sens = sensuel;
 
         setEGLContextClientVersion(2);
-        mRenderer = new AeroRenderer(sens/*, context*/);
+        mRenderer = new AeroRenderer(sens, context);
 
         setRenderer(mRenderer);
     }

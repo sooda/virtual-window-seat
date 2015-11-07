@@ -22,12 +22,14 @@ public class AeroRenderer implements GLSurfaceView.Renderer {
     private final float[] mViewMatrix = new float[16];
     private final float[] mvp = new float[16];
     private Sensuel sens;
+    private Context con;
 
     //private SB sb;
 
-    public AeroRenderer(Sensuel sensuel/*, Context context*/) {
+    public AeroRenderer(Sensuel sensuel, Context context) {
         sens = sensuel;
         //skybox = new Skybox(/*context*/);
+        con = context;
 
         //sb = new SB();
     }
@@ -35,7 +37,7 @@ public class AeroRenderer implements GLSurfaceView.Renderer {
     @Override
     public void onSurfaceCreated(GL10 unused, EGLConfig config) {
         // Set the background frame color
-        skybox = new Skybox();
+        skybox = new Skybox(con);
         GLES20.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
         GLES20.glEnable(GLES20.GL_DEPTH_TEST);
         //triangle = new Triangle();
