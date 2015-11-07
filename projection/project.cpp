@@ -205,6 +205,8 @@ Mat project(camera c, plane p, Mat src) {
 	cout<<"jee"<<endl;
 	cout<<m<<endl;
 	warpPerspective(src, dst, m, Size(SZ, SZ));
+	dst.rowRange(0, 10) = Mat::ones(10, SZ, CV_8UC3)*0xff;
+	dst.colRange(0, 10) = Mat::ones(SZ, 10, CV_8UC3)*0xff;
 	return dst;
 }
 
