@@ -17,8 +17,8 @@ typedef Vec2f vec2;
 typedef Point2f pt2;
 typedef Point3f pt3;
 
-#define SZ 512
-#define SZ_F 512.0f
+#define SZ 256
+#define SZ_F 256.0f
 
 Mat rot180(Mat m) {
 	transpose(m, m);
@@ -561,8 +561,10 @@ void test2() {
 	box.zmax.tex.copyTo(out.rowRange(SZ, 2*SZ).colRange(3*SZ, 4*SZ));
 	box.ymin.tex.copyTo(out.rowRange(2*SZ, 3*SZ).colRange(SZ, 2*SZ));
 	imwrite("outfull.png", out);
+#if 0
 	Size s=out.size();
 	resize(out,out,Size(s.width/2,s.height/2));
+#endif
 	namedWindow("outfull.png", 1);
 	imshow("outfull.png", out);
 }
