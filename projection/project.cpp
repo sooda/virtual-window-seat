@@ -145,34 +145,34 @@ class dont_draw {};
 
 // project a point pt_2d in camera's image plane (local coords) on 3d plane p
 vec2 camplane_to_plane(camera c, vec2 pt_2d, plane p) {
-	cout << "camplane to plane: pt " << pt_2d << endl;
+	cerr << "camplane to plane: pt " << pt_2d << endl;
 	// should be normalized to f already
 	vec4 local_3d(pt_2d[0], pt_2d[1], -1.0f, 1.0f); // homog, note z dir
 	// on virtual image plane in global coord
 	// local screen is always at z=-1.0f and straight along x,y axes
 	vec4 pt_3d_hom = c.local_to_world * local_3d;
-	cout << "pt 3d hom, in world: " << pt_3d_hom << endl;
+	cerr << "pt 3d hom, in world: " << pt_3d_hom << endl;
 	vec3 pt_3d(ptfromhom(pt_3d_hom));
 	vec3 v = unit(pt_3d - c.pos());
-	cout << "v: " << v << endl;
+	cerr << "v: " << v << endl;
 	float t = intersect_vec_plane(c.pos(), v, p);
 	if (t < 0) {
 		// FIXME: other side may be negative nicely if the other is not, then it just wraps infinitely
-		cout << "negative ray ignored " << t << endl;
+		cerr << "negative ray ignored " << t << endl;
 #if 0
 		return vec2();
 #endif
 		throw dont_draw();
 	}
 	vec3 pt_on_plane = c.pos() + t * v;
-	cout << "pt on plane: " << t << " units => " << pt_on_plane << endl;
+	cerr << "pt on plane: " << t << " units => " << pt_on_plane << endl;
 	vec4 pt_on_plane_hom = hompt(pt_on_plane);
 
 	vec4 pt_on_plane_as_2d = p.world_to_local * pt_on_plane_hom;
-	cout << "as 2d: " << pt_on_plane_as_2d << endl;
+	cerr << "as 2d: " << pt_on_plane_as_2d << endl;
 	// div by w?
 	vec2 ret(pt_on_plane_as_2d[0], pt_on_plane_as_2d[1]); // * scaling?
-	cout << "ret: " << ret << endl;
+	cerr << "ret: " << ret << endl;
 	return ret;
 }
 
@@ -206,19 +206,19 @@ Mat obtain_dest(camera c, plane p, vec2 scale, float texw, float texh) {
 #if 0
 	if (v0 == v1) {
 		// all v0, v1, v2,v3 zeroes from camplane_to_plane since it's behind the cam
-		cout << "flipping plane ignored" << endl;
+		cerr << "flipping plane ignored" << endl;
 	}
 #endif
 	pt2 dst_pixels[] = {v0, v1, v2, v3};
-	cout << src_pixels[0] << endl;
-	cout << src_pixels[1] << endl;
-	cout << src_pixels[2] << endl;
-	cout << src_pixels[3] << endl;
-	cout << "==>" << endl;
-	cout << dst_pixels[0] << endl;
-	cout << dst_pixels[1] << endl;
-	cout << dst_pixels[2] << endl;
-	cout << dst_pixels[3] << endl;
+	cerr << src_pixels[0] << endl;
+	cerr << src_pixels[1] << endl;
+	cerr << src_pixels[2] << endl;
+	cerr << src_pixels[3] << endl;
+	cerr << "==>" << endl;
+	cerr << dst_pixels[0] << endl;
+	cerr << dst_pixels[1] << endl;
+	cerr << dst_pixels[2] << endl;
+	cerr << dst_pixels[3] << endl;
 	Mat m = getPerspectiveTransform(src_pixels, dst_pixels);
 	return m;
 }
@@ -230,12 +230,12 @@ Mat project(camera c, plane p, Mat src) {
 	try {
 		m = obtain_dest(c, p, scale, src.size().width, src.size().height);
 	} catch (dont_draw&) {
-		cout<<"flipping plane ignored "<<endl;
+		cerr<<"flipping plane ignored "<<endl;
 		return Mat(SZ, SZ, CV_8UC3, Scalar(0));
 	}
 	Mat dst;
-	cout<<"jee"<<endl;
-	cout<<m<<endl;
+	cerr<<"jee"<<endl;
+	cerr<<m<<endl;
 	warpPerspective(src, dst, m, Size(SZ, SZ));
 	dst.rowRange(0, 10) = Mat::ones(10, SZ, CV_8UC3)*0xff;
 	dst.colRange(0, 10) = Mat::ones(SZ, 10, CV_8UC3)*0xff;
@@ -285,7 +285,7 @@ void test() {
 	wtl = scale(SZ_F, SZ_F, 1.0f) * wtl;
 	// FIXME TODO XXX: topleft or bottomleft origin?
 
-	cout << wtl << endl;
+	cerr << wtl << endl;
 	// plane: n.p + d == 0
 	box.zmin.p = plane{
 		{0.0f, 0.0f, 1.0f}, // normal towards box center
@@ -335,11 +335,11 @@ void testb() {
 // one whole tex, sum images over
 // TODO what to do with overlap? now just sum them
 Mat projectwhole(camdata *cams, int ncams, plane p) {
-	cout<<"IDX:0"<<endl;
+	cerr<<"IDX:0"<<endl;
 	Mat full = project(cams[0].c, p, cams[0].frame);
 	for (int i = 1; i < ncams; i++) {
-		cout<<"IDX:"<<i<<endl;
-		cout<<"CAM::::"<<cams[i].c.local_to_world<<endl;
+		cerr<<"IDX:"<<i<<endl;
+		cerr<<"CAM::::"<<cams[i].c.local_to_world<<endl;
 		Mat next = project(cams[i].c, p, cams[i].frame);
 		full += next;
 	}
@@ -373,7 +373,7 @@ void test2() {
 	if (!initd) {
 		initd=1;
 		for (int i = 0; i < 4; i++) {
-			cout << "open " << i << endl;
+			cerr << "open " << i << endl;
 			if (!cap[i].open(i))
 				throw "nope";
 			cap[i].set(CV_CAP_PROP_FRAME_WIDTH, 320);
@@ -387,11 +387,11 @@ void test2() {
 	cap[3] >> camdown;
 	flip(camright, camright, -1);
 	flip(camleft, camleft, -1);
-	cout << "hox:" << endl;
-	cout << camfront.size() << endl;
-	cout << camright.size() << endl;
-	cout << camleft.size() << endl;
-	cout << camdown.size() << endl;
+	cerr << "hox:" << endl;
+	cerr << camfront.size() << endl;
+	cerr << camright.size() << endl;
+	cerr << camleft.size() << endl;
+	cerr << camdown.size() << endl;
 #endif
 	float w = 1.53f; // 2*tan(75deg/2)
 	float h = w/640.0*480.0; // ~1.15
@@ -493,7 +493,7 @@ void test2() {
 #endif
 	}};
 	skybox box;
-	cout << frontbox_world_to_local() << endl;
+	cerr << frontbox_world_to_local() << endl;
 	// normals pointing inside the box here, dunno if it matters
 	// plane: n.p + d == 0
 	
@@ -540,19 +540,19 @@ void test2() {
 	// left front right back
 	//      bottom
 
-	cout<<"top"<<endl;
+	cerr<<"top"<<endl;
 	box.ymax.tex = projectwhole(cams.data(), cams.size(), box.ymax.p); // top
-	cout<<"left"<<endl;
+	cerr<<"left"<<endl;
 	box.xmin.tex = projectwhole(cams.data(), cams.size(), box.xmin.p); // left
-	cout<<"front"<<endl;
+	cerr<<"front"<<endl;
 	box.zmin.tex = projectwhole(cams.data(), cams.size(), box.zmin.p); // front
-	cout<<"right"<<endl;
+	cerr<<"right"<<endl;
 	box.xmax.tex = projectwhole(cams.data(), cams.size(), box.xmax.p); // right
-	cout<<"back"<<endl;
+	cerr<<"back"<<endl;
 	box.zmax.tex = projectwhole(cams.data(), cams.size(), box.zmax.p); // back
-	cout<<"bottom"<<endl;
+	cerr<<"bottom"<<endl;
 	box.ymin.tex = projectwhole(cams.data(), cams.size(), box.ymin.p); // bottom
-	cout<<endl<<endl<<endl<<endl;
+	cerr<<endl<<endl<<endl<<endl;
 	Mat out(3*SZ, 4*SZ, CV_8UC3, Scalar(0));
 	box.ymax.tex.copyTo(out.rowRange(0, SZ).colRange(SZ, 2*SZ));
 	box.xmin.tex.copyTo(out.rowRange(SZ, 2*SZ).colRange(0, SZ));
@@ -571,13 +571,13 @@ void test2() {
 
 int main() {
 #if 0
-	cout << rotx(0) << endl;
-	cout << roty(0) << endl;
-	cout << rotz(0) << endl;
-	cout << "--" << endl;
-	cout << rotx(deg2rad(90)) << endl;
-	cout << roty(deg2rad(90)) << endl;
-	cout << rotz(deg2rad(90)) << endl;
+	cerr << rotx(0) << endl;
+	cerr << roty(0) << endl;
+	cerr << rotz(0) << endl;
+	cerr << "--" << endl;
+	cerr << rotx(deg2rad(90)) << endl;
+	cerr << roty(deg2rad(90)) << endl;
+	cerr << rotz(deg2rad(90)) << endl;
 	return 0;
 #endif
 #if 0
