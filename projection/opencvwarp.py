@@ -17,9 +17,15 @@
 
 # nvprof --query-metrics
 
+# A[R T]p_world = (u, v, 1)*z
 # C_0 in world origin
-# C_1 [R T] where T position of world origin in this reference
+# C_1 extrinsics [R T] where T position of world origin in this reference
 # C_1 in C_0: -R^-1 T (rotate world origin diff to world coord then translate back)
+#intr:
+#
+#f*mx, 0, u,
+#0, f*my, v,
+#0,   0,  1
 
 import cv2
 import numpy as np

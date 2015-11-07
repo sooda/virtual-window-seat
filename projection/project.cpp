@@ -5,6 +5,8 @@
 #include <opencv2/gpu/gpu.hpp>
 #include <array>
 
+#define CAMS
+
 using namespace std;
 using namespace cv;
 
@@ -40,7 +42,7 @@ struct camera {
 		return invpos(local_to_world);
 #endif
 	}
-	struct {
+	struct intrinsic {
 		float w;
 		float h;
 		float f;
@@ -170,16 +172,28 @@ vec2 camplane_to_plane(camera c, vec2 pt_2d, plane p) {
 	return ret;
 }
 
+#if 0
+// given a vec from c to pt, where (in 2d) does it hit the camera image?
+vec2 pt_to_camplane(camera c, vec3 pt_3d) {
+	// v = (pt - c).u
+	// c + t*v = i
+	// transform i from world into camera local
+	// i /= i.z (image plane is at 1)
+	vec3 v = unit(pt_3d - c.pos());
+	// m * c + m * t + v = m * i [m * i.z == 1]
+}
+#endif
+
 // find where the corners of c's image plane project to, on plane p.
 // image wid/hei given by scale, in units of focal len
 // tex1 is "one" in tex pixel coords
-Mat obtain_dest(camera c, plane p, vec2 scale, float tex1) {
+Mat obtain_dest(camera c, plane p, vec2 scale, float texw, float texh) {
 	// lower left and counterclockwise
 	pt2 src_pixels[] = {
 		pt2(0.0f, 0.0f),
-		pt2(tex1, 0.0f),
-		pt2(tex1, tex1),
-		pt2(0.0f, tex1)
+		pt2(texw, 0.0f),
+		pt2(texw, texh),
+		pt2(0.0f, texh)
 	};
 	vec2 v0 = camplane_to_plane(c, vec2(scale[0] * -1.0f, scale[1] * -1.0f), p);
 	vec2 v1 = camplane_to_plane(c, vec2(scale[0] *  1.0f, scale[1] * -1.0f), p);
@@ -208,10 +222,9 @@ Mat obtain_dest(camera c, plane p, vec2 scale, float tex1) {
 // project 'src' tex taken from c onto plane p, return whole resulting tex
 Mat project(camera c, plane p, Mat src) {
 	vec2 scale(c.physical.w / c.physical.f, c.physical.h / c.physical.f);
-	// XXX assume width==height
 	Mat m;
 	try {
-		m = obtain_dest(c, p, scale, src.size().width);
+		m = obtain_dest(c, p, scale, src.size().width, src.size().height);
 	} catch (dont_draw&) {
 		cout<<"flipping plane ignored "<<endl;
 		return Mat(SZ, SZ, CV_8UC3, Scalar(0));
@@ -281,7 +294,8 @@ void test() {
 	imwrite("out.png", out);
 }
 
-static float boxdim = 10.0f; // dist from cam, half box
+// FIXME this gets scaled ughh, real scaling in camera size. tweak wtl below to just center it, the eqs have boxdim already for proper scaling
+static float boxdim = 5.0f; // dist from cam, half box
 // "local" = in 2d coords and units already here
 mat4 frontbox_world_to_local() {
 	mat4 wtl;
@@ -329,56 +343,83 @@ Mat projectwhole(camdata *cams, int ncams, plane p) {
 }
 
 void test2() {
+#ifdef CAMS
+	static VideoCapture cap1(0);
+	static VideoCapture cap2(1);
+	static int initd;
+
+	if (!initd) {
+		initd=1;
+		cap1.set(CV_CAP_PROP_FRAME_WIDTH, 320);
+		cap1.set(CV_CAP_PROP_FRAME_HEIGHT, 240);
+		cap2.set(CV_CAP_PROP_FRAME_WIDTH, 320);
+		cap2.set(CV_CAP_PROP_FRAME_HEIGHT, 240);
+	}
+	Mat a, b;
+	cap1 >> a;
+	cap2 >> b;
+#endif
+	float w = 0.90f;
+	float h = 0.90f;
+
 	static float ang;
-	ang = deg2rad(10);//+= deg2rad(10);
+	ang += deg2rad(3);
 	array<camdata, 8> cams ={ {
 		{ camera{
 				ones(),
-				{ 0.50f, 0.50f, 1.0f }
+				{ w, h, 1.0f }
 			},
+#ifndef CAMS
 			imread("camfront.png")
+#else
+			a
+#endif
 		},
 #if 1
 		{ camera{
-				roty(ang),
-				{ 0.50f, 0.50f, 1.0f }
+				roty(ang)*rotx(deg2rad(5.0f)),
+				{ w, h, 1.0f }
 			},
 			imread("blank.png")
 		},
 #endif
 		{ camera{
 				rotx(ang),
-				{ 0.50f, 0.50f, 1.0f }
+				{ w, h, 1.0f }
 			},
 			imread("blank.png")
 		},
 		{ camera{
 				roty(deg2rad(-90.0f)),
-				{ 0.50f, 0.50f, 1.0f }
+				{ w, h, 1.0f }
 			},
+#ifndef CAMS
 			imread("camright.png")
+#else
+			b
+#endif
 		},
 		{ camera{
 				roty(deg2rad(90.0f)),
-				{ 0.50f, 0.50f, 1.0f }
+				{ w, h, 1.0f }
 			},
 			imread("camleft.png")
 		},
 		{ camera{
 				rotx(deg2rad(90.0f)),
-				{ 0.50f, 0.50f, 1.0f }
+				{ w, h, 1.0f }
 			},
 			imread("camup.png")
 		},
 		{ camera{
 				rotx(deg2rad(-90.0f)),
-				{ 0.50f, 0.50f, 1.0f }
+				{ w, h, 1.0f }
 			},
 			imread("camdown.png")
 		},
 		{ camera{
 				roty(deg2rad(180.0f)),
-				{ 0.50f, 0.50f, 1.0f }
+				{ w, h, 1.0f }
 			},
 			imread("camback.png")
 		}
@@ -453,7 +494,7 @@ void test2() {
 	box.ymin.tex.copyTo(out.rowRange(2*SZ, 3*SZ).colRange(SZ, 2*SZ));
 	imwrite("outfull.png", out);
 	Size s=out.size();
-	resize(out,out,Size(s.width/4,s.height/4));
+	resize(out,out,Size(s.width/2,s.height/2));
 	namedWindow("outfull.png", 1);
 	imshow("outfull.png", out);
 }
