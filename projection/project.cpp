@@ -349,7 +349,9 @@ mat4 frontbox_world_to_local() {
 }
 
 void test2() {
-	array<camdata,7> cams ={ {
+	static float ang;
+	ang += deg2rad(10);
+	array<camdata,8> cams ={ {
 		{
 			camera{
 
@@ -365,14 +367,26 @@ void test2() {
 		{
 			camera{
 
-				roty(deg2rad(45.0f))*translate(0.5f, 0.0f, 0.0f),
+				roty(ang)/**translate(0.5f, 0.0f, 0.5f)*/, // left and back a bit
 				{
 					0.50f, // w (all these three in same units)
 					0.50f, // h
 					1.0f // f
 				}
 			},
-			imread("camfront.png")
+			imread("blank.png")
+		},
+		{
+			camera{
+
+				rotx(ang)/**translate(0.5f, 0.0f, 0.5f)*/, // left and back a bit
+				{
+					0.50f, // w (all these three in same units)
+					0.50f, // h
+					1.0f // f
+				}
+			},
+			imread("blank.png")
 		},
 		{
 			camera{
@@ -491,10 +505,17 @@ void test2() {
 	box.zmax.tex.copyTo(out.rowRange(SZ, 2*SZ).colRange(3*SZ, 4*SZ));
 	box.ymin.tex.copyTo(out.rowRange(2*SZ, 3*SZ).colRange(SZ, 2*SZ));
 	imwrite("outfull.png", out);
+	Size s=out.size();
+	resize(out,out,Size(s.width/8,s.height/8));
+	namedWindow("outfull.png", 1);
+	imshow("outfull.png", out);
 }
 
 int main() {
-	test();
-	testb();
-	test2();
+	//test();
+	//testb();
+	for (;;) {
+		test2();
+		waitKey(1);
+	}
 }
