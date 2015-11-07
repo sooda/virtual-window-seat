@@ -23,9 +23,7 @@ typedef Point3f pt3;
 vec3 invpos(mat4 m) {
 	Mat n(m);
 	mat3 r = n.rowRange(0, 3).colRange(0, 3);
-	cout << "ww" << endl;
 	vec3 t = n.rowRange(0, 3).col(3);
-	cout << "qq" << endl;
 	return -r.t() * t;
 }
 
@@ -143,6 +141,7 @@ vec2 camplane_to_plane(camera c, vec2 pt_2d, plane p) {
 	// should be normalized to f already
 	vec4 local_3d(pt_2d[0], pt_2d[1], -1.0f, 1.0f); // homog, note z dir
 	// on virtual image plane in global coord
+	// local screen is always at z=-1.0f and straight along x,y axes
 	vec4 pt_3d_hom = c.local_to_world * local_3d;
 	cout << "pt 3d hom, in world: " << pt_3d_hom << endl;
 	vec3 pt_3d(ptfromhom(pt_3d_hom));
@@ -279,46 +278,39 @@ void test() {
 	imwrite("out.png", out);
 }
 
+static float boxdim = 2.0f; // dist from cam, half box
+// "local" = in 2d coords and units already here
+mat4 frontbox_world_to_local() {
+	mat4 wtl;
+	// position the corner properly, and get away from cam
+	wtl = translate(boxdim, boxdim, boxdim);
+	// size of the whole plane is now 2dim x 2dim, need to make it 1x1 (z isn't important at this point anymore)
+	wtl = scale(0.5f/boxdim, 0.5f/boxdim, 1.0f) * wtl;
+	// and then in pixel coords!
+	wtl = scale(SZ_F, SZ_F, 1.0f) * wtl;
+	return wtl;
+}
+
 void testb() {
 	camdata cams[] = {
 		{
 			camera{
-				// 90 rotated here means turn left to face on the front in world
-				roty(-180.0f*3.14159f/180.0f)*ones(),
+				rotx(deg2rad(-90.0f)),
 				{
-					0.50f, // w (all these three in same units)
-					0.50f, // h
-					1.0f // f
+					0.50f,
+					0.50f,
+					1.0f
 				}
 			},
 			imread("camfront.png")
 		},
 	};
 	skybox box;
-	// world point to plane: plane is backed off z axis, some left and down
-	// so invert it. z -2 in world is z 0 on plane
-	// size is twice as big as image plane, so 4 per dir
-	// also shift the corner properly
-	mat4 rot = roty(180.0f*3.1415926526f/180.0f);
-	cout<<"rot"<<rot<<endl;
-	// rot whatever there is first to front then translate similarly as for the front plane
-	mat4 wtl = translate(2.0f, 2.0f, 2.0f)*rot;
-	cout<<"tran"<<translate(2.0f,2.0f,2.0f)<<endl;
-	// size of the whole plane is now 4x4, need to make it 1x1
-	wtl = scale(1.0f/4.0f, 1.0f/4.0f, 1.0f) * wtl;
-	// and then in pixel coords!
-	wtl = scale(SZ_F, SZ_F, 1.0f) * wtl;
-	// FIXME TODO XXX: topleft or bottomleft origin?
-
-	cout << "wtl:"<<wtl << endl;
-	// plane: n.p + d == 0
 	box.zmin.p = plane{
-		{0.0f, 0.0f, -1.0f}, // normal towards box center
-		2.0f, // dist: plane normal -1, mul by coord 2, add 2 to get 0
-		wtl // world_to_local
+		{0.0f, 1.0f, 0.0f},
+		boxdim,
+		frontbox_world_to_local() * rotx(deg2rad(90.0f))
 	};
-	// first camera looking into zmin (front)
-	// exactly at the middle
 	Mat out = project(cams[0].c, box.zmin.p, cams[0].frame);
 	imwrite("outb.png", out);
 }
@@ -333,19 +325,6 @@ Mat projectwhole(camdata *cams, int ncams, plane p) {
 		full += next;
 	}
 	return full;
-}
-
-static float boxdim = 2.0f; // dist from cam, half box
-// "local" = in 2d coords and units already here
-mat4 frontbox_world_to_local() {
-	mat4 wtl;
-	// position the corner properly, and get away from cam
-	wtl = translate(boxdim, boxdim, boxdim);
-	// size of the whole plane is now 2dim x 2dim, need to make it 1x1 (z isn't important at this point anymore)
-	wtl = scale(0.5f/boxdim, 0.5f/boxdim, 1.0f) * wtl;
-	// and then in pixel coords!
-	wtl = scale(SZ_F, SZ_F, 1.0f) * wtl;
-	return wtl;
 }
 
 void test2() {
@@ -439,7 +418,7 @@ void test2() {
 		{
 			camera{
 
-				translate(0.0f, 0.0f, 0.0f)*rotx(deg2rad(-180.0f))*ones(),
+				translate(0.0f, 0.0f, 0.0f)*roty(deg2rad(180.0f))*ones(),
 				{
 					0.50f,
 					0.50f,
@@ -454,35 +433,42 @@ void test2() {
 	cout << frontbox_world_to_local() << endl;
 	// normals pointing inside the box here, dunno if it matters
 	// plane: n.p + d == 0
+	
+	// front
 	box.zmin.p = plane{
 		{0.0f, 0.0f, 1.0f},
 		boxdim,
 		frontbox_world_to_local()
 	};
+	// right
 	box.xmax.p = plane{
 		{-1.0f, 0.0f, 0.0f},
 		boxdim,
 		frontbox_world_to_local() * roty(deg2rad(90.0f))
 	};
+	// left
 	box.xmin.p = plane{
 		{1.0f, 0.0f, 0.0f},
 		boxdim,
 		frontbox_world_to_local() * roty(deg2rad(-90.0f))
 	};
+	// up
 	box.ymax.p = plane{
 		{0.0f, -1.0f, 0.0f},
 		boxdim,
 		frontbox_world_to_local() * rotx(deg2rad(-90.0f))
 	};
+	// down
 	box.ymin.p = plane{
 		{0.0f, 1.0f, 0.0f},
 		boxdim,
 		frontbox_world_to_local() * rotx(deg2rad(90.0f))
 	};
+	// back
 	box.zmax.p = plane{
 		{0.0f, 0.0f, -1.0f},
 		boxdim,
-		frontbox_world_to_local() * rotx(deg2rad(180.0f))
+		frontbox_world_to_local() * roty(deg2rad(180.0f))
 	};
 	// first camera looking into zmin (front)
 	// exactly at the middle
@@ -512,10 +498,13 @@ void test2() {
 }
 
 int main() {
-	//test();
-	//testb();
+#if 0
+	testb();
+	return 0;
+#else
 	for (;;) {
 		test2();
 		waitKey(1);
 	}
+#endif
 }
