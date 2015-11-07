@@ -302,7 +302,7 @@ void test2() {
 				rotx(00.0f*3.14159f/180.0f)*ones(), // local to world: camera sits at origin. positive rotation here tilts the cam down because local2world, not camera's rot
 				{
 					0.50f, // w (all these three in same units)
-					0.25f, // h
+					0.50f, // h
 					1.0f // f
 				}
 			},
@@ -311,10 +311,10 @@ void test2() {
 		{
 			camera{
 
-				translate(0.0f, 0.0f, 0.0f)*roty(-90.0f*3.14159f/180.0f)*ones(), // local to world: camera axes rotated first then translated. positive rotation here tilts the cam down because local2world, not camera's rot
+				translate(0.0f, 0.0f, 0.0f)*roty(-90.0f*3.14159f/180.0f)*ones(),
 				{
 					0.50f, // w (all these three in same units)
-					0.25f, // h
+					0.50f, // h
 					1.0f // f
 				}
 			},
@@ -342,7 +342,7 @@ void test2() {
 		2.0f, // dist: plane normal 1, mul by coord -2, add 2 to get 0
 		wtl // world_to_local
 	};
-	wtl = roty(-90.0f/180.0f*3.14159f);
+	wtl = roty(90.0f/180.0f*3.14159f);
 	wtl = translate(2.0f, 2.0f, 2.0f)*wtl;
 	// size of the whole plane is now 4x4, need to make it 1x1
 	wtl = scale(1.0f/4.0f, 1.0f/4.0f, 1.0f) * wtl;
@@ -362,7 +362,7 @@ void test2() {
 
 	// FIXME all planes properly
 	box.ymax.tex = projectwhole(cams, 2, box.zmin.p); // top
-	box.xmin.tex = projectwhole(cams, 2, box.xmin.p); // left
+	box.xmin.tex = projectwhole(cams, 2, box.zmin.p); // left
 	box.zmin.tex = projectwhole(cams, 2, box.zmin.p); // front
 	box.xmax.tex = projectwhole(cams, 2, box.xmax.p); // right
 	box.zmax.tex = projectwhole(cams, 2, box.zmin.p); // back
@@ -378,7 +378,7 @@ void test2() {
 }
 
 int main() {
-	//test();
+	test();
 	testb();
-	//test2();
+	test2();
 }
