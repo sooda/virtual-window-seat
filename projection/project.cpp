@@ -4,6 +4,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/gpu/gpu.hpp>
 #include <array>
+#include <unistd.h>
 
 using namespace std;
 using namespace cv;
@@ -560,13 +561,20 @@ void test2() {
 	box.xmax.tex.copyTo(out.rowRange(SZ, 2*SZ).colRange(2*SZ, 3*SZ));
 	box.zmax.tex.copyTo(out.rowRange(SZ, 2*SZ).colRange(3*SZ, 4*SZ));
 	box.ymin.tex.copyTo(out.rowRange(2*SZ, 3*SZ).colRange(SZ, 2*SZ));
-	imwrite("outfull.png", out);
 #if 0
 	Size s=out.size();
 	resize(out,out,Size(s.width/2,s.height/2));
 #endif
+#if 0
+	imwrite("outfull.png", out);
 	namedWindow("outfull.png", 1);
 	imshow("outfull.png", out);
+#else
+	Mat outimg;
+	cvtColor(out, outimg, CV_BGR2BGRA);
+	const auto size = outimg.elemSize() * outimg.total();
+	write(STDOUT_FILENO, outimg.data, size);
+#endif
 }
 
 int main() {
