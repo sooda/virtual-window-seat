@@ -31,7 +31,7 @@ public class AeroRenderer implements GLSurfaceView.Renderer, SurfaceTexture.OnFr
     private SurfaceTexture mSurface;
 
 
-    //private SB sb;
+    private SB sb;
 
     public AeroRenderer(Sensuel sensuel, Context context) {
         sens = sensuel;
@@ -46,6 +46,7 @@ public class AeroRenderer implements GLSurfaceView.Renderer, SurfaceTexture.OnFr
         // Set the background frame color
 
         skybox = new Skybox(con, mMediaPlayer);
+        //sb = new SB(con);
         skybox.mMediaPlayer = mMediaPlayer;
         GLES20.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
         GLES20.glEnable(GLES20.GL_DEPTH_TEST);
@@ -85,6 +86,7 @@ public class AeroRenderer implements GLSurfaceView.Renderer, SurfaceTexture.OnFr
         //sb.draw(mvp);
         if(skybox != null)
             skybox.draw(mvp);
+        //sb.draw(mvp);
         //triangle.draw(mvp);
     }
 
