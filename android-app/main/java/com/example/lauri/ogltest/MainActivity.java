@@ -1,6 +1,7 @@
 package com.example.lauri.ogltest;
 
 import android.app.ActionBar;
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.hardware.Sensor;
@@ -18,7 +19,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.media.MediaPlayer;
 
-public class MainActivity extends AppCompatActivity implements SensorEventListener{
+public class MainActivity extends Activity implements SensorEventListener{
 
     private GLSurfaceView glview;
     private SensorManager mSensorManager;
@@ -72,7 +73,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         try {
 
-            AssetFileDescriptor afd = getResources().openRawResourceFd(R.raw.testvideo);
+            AssetFileDescriptor afd = getResources().openRawResourceFd(R.raw.fug);
             mMediaPlayer.setDataSource(
                     afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
             //mMediaPlayer.setDataSource(afd.getFileDescriptor());

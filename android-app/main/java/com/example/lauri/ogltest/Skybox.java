@@ -166,7 +166,7 @@ public class Skybox implements SurfaceTexture.OnFrameAvailableListener {
 
         mMediaPlayer.start();
         //mMediaPlayer.stop();
-        //mMediaPlayer.setLooping(true);
+        mMediaPlayer.setLooping(true);
         //SURFACE TEXTURE SHIT
 
         int tmpVertShader = GLES20.glCreateShader(GLES20.GL_VERTEX_SHADER);
