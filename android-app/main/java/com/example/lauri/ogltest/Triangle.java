@@ -106,23 +106,11 @@ public class Triangle {
                 GLES20.GL_FRAGMENT_SHADER, fragmentShaderCode);
 
         mProgram = GLES20.glCreateProgram();             // create empty OpenGL Program
-        Log.e("asdf", "penis" + GLES20.glIsProgram(mProgram));
-        checkGlError("shit");
-        Log.e("prog int", "int: " + mProgram);
         GLES20.glAttachShader(mProgram, vertexShader);   // add the vertex shader to program
-        Log.e("asdf", "penis" + GLES20.glIsProgram(mProgram));
-        checkGlError("shit");
         GLES20.glAttachShader(mProgram, fragmentShader); // add the fragment shader to program
-        Log.e("asdf", "penis" + GLES20.glIsProgram(mProgram));
-        checkGlError("shit");
         GLES20.glLinkProgram(mProgram);                  // create OpenGL program executables
-        checkGlError("shit");
         int[] par = new int[1];
         GLES20.glGetProgramiv(mProgram, GLES20.GL_LINK_STATUS, par, 0);
-        Log.e("Penis", "lol" + par[0]);
-        Log.e("AAAAAA???", "asdf" + GLES20.glGetProgramInfoLog(mProgram));
-        Log.e("asdf", "penis" + GLES20.glIsProgram(mProgram));
-        checkGlError("shit");
 
     }
 

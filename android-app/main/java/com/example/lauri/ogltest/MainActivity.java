@@ -73,7 +73,7 @@ public class MainActivity extends Activity implements SensorEventListener{
 
         try {
 
-            AssetFileDescriptor afd = getResources().openRawResourceFd(R.raw.fug);
+            AssetFileDescriptor afd = getResources().openRawResourceFd(R.raw.output);
             mMediaPlayer.setDataSource(
                     afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
             //mMediaPlayer.setDataSource(afd.getFileDescriptor());
@@ -158,9 +158,6 @@ public class MainActivity extends Activity implements SensorEventListener{
         float[] deltaRotationMatrix = new float[16];
         SensorManager.getRotationMatrixFromVector(deltaRotationMatrix, deltaRotationVector);
         sens.updateOrientation(deltaRotationMatrix);
-        // User code should concatenate the delta rotation we computed with the current rotation
-        // in order to get the updated rotation.
-        // rotationCurrent = rotationCurrent * deltaRotationMatrix;
     }
 
 
