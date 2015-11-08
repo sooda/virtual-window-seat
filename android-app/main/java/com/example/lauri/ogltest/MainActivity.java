@@ -79,7 +79,7 @@ public class MainActivity extends Activity implements SensorEventListener{
             //mMediaPlayer.setDataSource(afd.getFileDescriptor());
             afd.close();
         } catch (Exception e) {
-            Log.e("Shit Activity", e.getMessage(), e);
+            Log.e("Main Activity", e.getMessage(), e);
         }
 
         glview = new AeroSurfaceView(this, sens, mMediaPlayer);

@@ -19,7 +19,7 @@ import android.opengl.GLSurfaceView;
  */
 public class AeroRenderer implements GLSurfaceView.Renderer, SurfaceTexture.OnFrameAvailableListener {
     private Skybox skybox;
-    private Triangle triangle;
+    //private Triangle triangle;
     private final float[] mProjMatrix = new float[16];
     private final float[] mViewMatrix = new float[16];
     private final float[] mvp = new float[16];
