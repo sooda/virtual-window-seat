@@ -44,6 +44,7 @@ public class AeroRenderer implements GLSurfaceView.Renderer, SurfaceTexture.OnFr
     @Override
     public void onSurfaceCreated(GL10 unused, EGLConfig config) {
         // Set the background frame color
+
         skybox = new Skybox(con, mMediaPlayer);
         skybox.mMediaPlayer = mMediaPlayer;
         GLES20.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
@@ -67,12 +68,12 @@ public class AeroRenderer implements GLSurfaceView.Renderer, SurfaceTexture.OnFr
 
         Matrix.setIdentityM(mvp, 0);
         //Matrix.setLookAtM(mViewMatrix, 0, 1.5f, 1.1f, 0.1f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-        //Matrix.setLookAtM(mViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
+        Matrix.setLookAtM(mViewMatrix, 0, 0, 0, 0, 0f, 0f, 1f, 0f, 1.0f, 0.0f);
 
         //mViewMatrix = sens.getOrientation();
         Matrix.multiplyMM(mViewMatrix, 0, sens.getOrientation(), 0, mvp, 0);
         //Matrix.setIdentityM(mViewMatrix, 0);
-        //Matrix.rotateM(mViewMatrix, 0, 1.0f, (float)Math.sin(sens.testx), 0.0f, 0.0f);
+        //Matrix.rotateM(mViewMatrix, 0, 1.0f, sens.testx, 0.0f, 0.0f);
         //Matrix.setLookAtM(mViewMatrix, 0,
         //        0, 0, 0,
                 //(float)Math.sin(System.nanoTime()*0.000000001f), 0f, (float)Math.cos(System.nanoTime()*0.000000001f),
